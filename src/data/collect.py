@@ -3,6 +3,7 @@ import pandas as pd
 import requests
 import zipfile
 from io import BytesIO, TextIOWrapper
+import json
 
 
 url_dvf = "https://www.data.gouv.fr/api/1/datasets/r/99a26050-b94f-4ffc-9eb0-73ed28a895d1"
@@ -11,10 +12,14 @@ api_dvf = "https://valoris-immo.fr/api/v1/prix-median"
 
 url_insee = "depend de la base"
 
-api_insee = "depend de la base"
+# densité de population
+api_insee1 = "https://api.insee.fr/melodi/data/DS_ESTIMATION_POPULATION?TIME_PERIOD=2025&GEO=DEP&maxResult=100000"
+
+# revenu
+api_insee2 = "https://api.insee.fr/melodi/data/DS_BTS_SAL_EQTP_SEX_PCS?TIME_PERIOD=2023&maxResult=20000"
 
 
-def load_dvf_data_url(url: str) -> pd.DataFrame:
+def load__data_url_zip_txt(url: str) -> pd.DataFrame:
     """
     Télécharge et charge un fichier DVF au format .txt.zip depuis une URL data.gouv.fr.
 
@@ -57,15 +62,7 @@ def load_dvf_data_url(url: str) -> pd.DataFrame:
     return df
 
 
-"""
-df = load_dvf_data_url(url_dvf)
-
-print(df.head(3))
-print(df.shape)
-"""
-
-
-def load_dvf_zip_csv(url: str) -> pd.DataFrame:
+def load_data_url_zip_csv(url: str) -> pd.DataFrame:
     """
     Télécharge et charge un fichier au format .zip contenant un CSV.
 
@@ -109,4 +106,46 @@ def load_dvf_zip_csv(url: str) -> pd.DataFrame:
             )
 
     # 4. Retour du DataFrame
+    return df
+
+
+url_api = "https://api.insee.fr/melodi/data/DS_ESTIMATION_POPULATION?TIME_PERIOD=2025&GEO=DEP&maxResult=100000"
+
+
+def load_data_api(api_url):
+
+    get_data = requests.get(api_url, verify=False)
+    data_from_net = get_data.content
+    data = json.loads(data_from_net)
+
+    # Extraction des observations du jeu de données filtré, sur lesquelles on va boucler
+    observations = data['observations']
+    extracted_data = []
+
+    # Boucle de lecture des observations dans le json 
+    for obs in observations:
+        dimensions = obs['dimensions']
+
+        # Suivant les jeux de données attributes est présent ou non
+        if 'attributes' in obs:
+            attributes = obs['attributes']
+        else:
+            attributes = None
+
+        # Suivant les jeux de données value peut être absent
+        if 'value' in obs['measures']['OBS_VALUE_NIVEAU']:
+            measures = obs['measures']['OBS_VALUE_NIVEAU']['value']
+        else:
+            mesures = None
+
+        # on rassemble tout dans un objet
+        if 'attributes' in obs:
+            combined_data = {**dimensions, **attributes, 'OBS_VALUE_NIVEAU': measures}
+        else:
+            combined_data = {**dimensions, 'OBS_VALUE_NIVEAU': measures}
+
+        extracted_data.append(combined_data)
+
+    # Création d'un dataframe python
+    df = pd.DataFrame(extracted_data)
     return df
