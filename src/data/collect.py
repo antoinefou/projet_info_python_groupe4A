@@ -2,6 +2,8 @@
 import pandas as pd
 import requests
 import json
+import zipfile
+from io import BytesIO
 
 
 url_dvf = "https://static.data.gouv.fr/resources/demandes-de-valeurs-foncieres/20260405-002321/valeursfoncieres-2025.txt.zip"
@@ -80,3 +82,39 @@ def load_data_api(api_url):
     # Création d'un dataframe python
     df = pd.DataFrame(extracted_data)
     return df
+print(load_data_api(api_insee1))
+
+def load_insee_dossier_complet(url: str) -> pd.DataFrame:
+    response = requests.get(url)
+    response.raise_for_status()
+
+    with zipfile.ZipFile(BytesIO(response.content)) as z:
+        file_name = [f for f in z.namelist() if f.endswith(".csv") and "meta" not in f][0]
+
+        with z.open(file_name) as f:
+            df = pd.read_csv(
+                f, encoding="utf-8",
+                sep=";",                # INSEE utilise ; pas |
+                low_memory=False,
+                usecols=["CODGEO", "MED21", "TP6021", "P22_POP", "P22_CHOM1564", "P22_ACT1564"]
+            )
+
+    return df
+
+url_insee = "https://www.insee.fr/fr/statistiques/fichier/5359146/dossier_complet.zip"
+insee = load_insee_dossier_complet(url_insee)
+
+# 1. Forme du tableau
+print(insee.shape)
+
+# 2. Premières lignes
+insee.head()
+
+# 3. Types et valeurs manquantes
+insee.info()
+
+# 4. Stats descriptives
+insee.describe()
+
+# 5. Valeurs manquantes par colonne
+print(insee.isnull().sum())
