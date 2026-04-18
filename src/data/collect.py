@@ -118,3 +118,15 @@ insee.describe()
 
 # 5. Valeurs manquantes par colonne
 print(insee.isnull().sum())
+
+
+url_logements_sociaux = "https://www.data.gouv.fr/api/1/datasets/r/b0d30277-3a14-4673-a988-2fa6c11e030c"
+
+logements_sociaux = pd.read_csv(url_logements_sociaux, sep=";", low_memory=False)
+
+logements_sociaux = logements_sociaux[["Code Commune", "Taux de logements sociaux (%)"]].copy()
+logements_sociaux.columns = ["CODGEO", "taux_logements_sociaux"]
+
+print(logements_sociaux.shape)
+print(logements_sociaux.columns.tolist())
+logements_sociaux.head()
