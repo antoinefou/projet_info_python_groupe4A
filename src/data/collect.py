@@ -38,7 +38,7 @@ def load__data_url_zip_txt(url: str) -> pd.DataFrame:
 
     """
 
-    df = pd.read_csv(url, sep="|", compression="zip")
+    df = pd.read_csv(url, sep="|", compression="zip", low_memory=False)
 
     return df
 
@@ -82,7 +82,7 @@ def load_data_api(api_url):
     # Création d'un dataframe python
     df = pd.DataFrame(extracted_data)
     return df
-print(load_data_api(api_insee1))
+"""print(load_data_api(api_insee1))"""
 
 def load_insee_dossier_complet(url: str) -> pd.DataFrame:
     response = requests.get(url)
@@ -102,10 +102,10 @@ def load_insee_dossier_complet(url: str) -> pd.DataFrame:
     return df
 
 url_insee = "https://www.insee.fr/fr/statistiques/fichier/5359146/dossier_complet.zip"
-insee = load_insee_dossier_complet(url_insee)
+"""insee = load_insee_dossier_complet(url_insee)
 
 # 1. Forme du tableau
-print(insee.shape)
+insee.shape
 
 # 2. Premières lignes
 insee.head()
@@ -117,7 +117,7 @@ insee.info()
 insee.describe()
 
 # 5. Valeurs manquantes par colonne
-print(insee.isnull().sum())
+insee.isnull().sum()
 
 
 url_logements_sociaux = "https://www.data.gouv.fr/api/1/datasets/r/b0d30277-3a14-4673-a988-2fa6c11e030c"
@@ -129,4 +129,4 @@ logements_sociaux.columns = ["CODGEO", "taux_logements_sociaux"]
 
 print(logements_sociaux.shape)
 print(logements_sociaux.columns.tolist())
-logements_sociaux.head()
+logements_sociaux.head()"""
