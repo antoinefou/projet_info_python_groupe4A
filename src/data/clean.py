@@ -50,6 +50,9 @@ def filter_dvf_columns(df: pd.DataFrame) -> pd.DataFrame:
         "Nature mutation"
     ]
 
+
+    
+
     # duplicated?
 
     # garder uniquement les colonnes existantes (robustesse)
@@ -85,6 +88,23 @@ def filter_dvf_columns(df: pd.DataFrame) -> pd.DataFrame:
         .astype(int)
         .astype(str)
         )
+    
+    # rename
+    df_filtered = df_filtered.rename(columns={
+        "Valeur fonciere": "valeur_fonciere",
+        "Code postal": "code_postal",
+        "Commune": "commune",
+        "Code departement": "code_departement",
+        "Code commune": "code_commune",
+        "Type local": "type_local",
+        "Surface reelle bati": "surface_reelle_bati",
+        "Nature mutation": "nature_mutation"
+    })
+
+    df_filtered["code_departement"] = df_filtered["code_departement"].astype(str).str.zfill(2)
+    df_filtered["code_commune"] = df_filtered["code_commune"].astype(str).str.zfill(3)
+
+    df_filtered["code_commune"] = df_filtered["code_departement"] + df_filtered["code_commune"]
 
     return df_filtered
 
@@ -96,8 +116,8 @@ print(dvf)"""
 
 def compute_prix_m2(
     df: pd.DataFrame,
-    price_col: str = "Valeur fonciere",
-    surface_col: str = "Surface reelle bati",
+    price_col: str = "valeur_fonciere",
+    surface_col: str = "surface_reelle_bati",
     new_col: str = "prix_m2"
 ) -> pd.DataFrame:
     """
@@ -125,3 +145,92 @@ def compute_prix_m2(
     df[new_col] = df[price_col] / df[surface_col]
 
     return df
+
+
+def preprocess_insee(df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Nettoie et transforme un DataFrame INSEE :
+
+    - Renomme certaines colonnes
+    - Convertit les types de données
+
+    Paramètres
+    ----------
+    df : pd.DataFrame
+        DataFrame d'entrée
+
+    Retour
+    ------
+    pd.DataFrame
+        DataFrame transformé
+    """
+
+    # Copie pour éviter de modifier l'original
+    df = df.copy()
+
+    # 1. Renommage des colonnes
+    df = df.rename(columns={
+        "CODGEO": "code_commune",
+        "MED21": "mediane_niveau_vie",
+        "TP6021": "taux_pauvrete",
+        "P22_POP": "population",
+        "P22_CHOM1564": "nbr_chomeur_15_64",
+        "P22_ACT1564": "nbr_personnes_active_15_64"
+    })
+
+    # 2. Conversion des types
+    df["code_commune"] = df["code_commune"].astype("string")
+    df["mediane_niveau_vie"] = df["mediane_niveau_vie"].astype("string")
+
+    df = df.dropna()
+
+    return df
+
+
+def merge_dvf_insee(dvf: pd.DataFrame, insee: pd.DataFrame, how: str = "left") -> pd.DataFrame:
+    """
+    Effectue une jointure entre les données DVF et INSEE sur la variable 'code_commune'.
+
+    Paramètres
+    ----------
+    dvf : pd.DataFrame
+        DataFrame DVF (transactions immobilières)
+    insee : pd.DataFrame
+        DataFrame INSEE (variables socio-économiques)
+    how : str, optional (default="left")
+        Type de jointure ('left', 'inner', 'right', 'outer')
+
+    Retour
+    ------
+    pd.DataFrame
+        DataFrame fusionné
+    """
+
+    dvf = dvf.copy()
+    insee = insee.copy()
+
+    # Sécurisation des types (clé de jointure)
+    dvf["code_commune"] = dvf["code_commune"].astype("string")
+    insee["code_commune"] = insee["code_commune"].astype("string")
+
+    # Jointure
+    df_merged = pd.merge(
+        dvf,
+        insee,
+        on="code_commune",
+        how=how
+    )
+
+    return df_merged
+
+# test
+"""
+from collect import url_dvf, url_insee, load__data_url_zip_txt, load_insee_dossier_complet
+
+dvf = filter_dvf_columns(load__data_url_zip_txt(url_dvf))
+insee = preprocess_insee(load_insee_dossier_complet(url_insee))
+
+dvf = compute_prix_m2(dvf)
+
+data_final = merge_dvf_insee(dvf, insee)
+print(data_final)"""

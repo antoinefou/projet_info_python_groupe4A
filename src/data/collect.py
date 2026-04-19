@@ -102,8 +102,9 @@ def load_insee_dossier_complet(url: str) -> pd.DataFrame:
     return df
 
 url_insee = "https://www.insee.fr/fr/statistiques/fichier/5359146/dossier_complet.zip"
-"""insee = load_insee_dossier_complet(url_insee)
 
+"""insee = load_insee_dossier_complet(url_insee)"""
+"""
 # 1. Forme du tableau
 insee.shape
 
@@ -117,9 +118,9 @@ insee.info()
 insee.describe()
 
 # 5. Valeurs manquantes par colonne
-insee.isnull().sum()
+insee.isnull().sum()"""
 
-
+"""
 url_logements_sociaux = "https://www.data.gouv.fr/api/1/datasets/r/b0d30277-3a14-4673-a988-2fa6c11e030c"
 
 logements_sociaux = pd.read_csv(url_logements_sociaux, sep=";", low_memory=False)
