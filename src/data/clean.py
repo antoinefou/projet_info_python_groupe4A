@@ -1,6 +1,7 @@
 """traitement et nettoyage des données brutes"""
 
 import pandas as pd
+import numpy as np
 """from collect import url_dvf, load__data_url_zip_txt"""
 
 
@@ -176,15 +177,27 @@ def preprocess_insee(df: pd.DataFrame) -> pd.DataFrame:
         "P22_POP": "population",
         "P22_CHOM1564": "nbr_chomeur_15_64",
         "P22_ACT1564": "nbr_personnes_active_15_64",
-        "SUPERF": "superficie",
-        "SNEMM_23": "salaire_moyen"
+        "SUPERF": "superficie"
     })
 
     # 2. Conversion des types
     df["code_commune"] = df["code_commune"].astype("string")
     df["mediane_niveau_vie"] = df["mediane_niveau_vie"].astype("string")
 
-    df = df.dropna()
+    df["taux_pauvrete"] = (
+        pd.to_numeric(
+            df["taux_pauvrete"]
+            .replace(["s", "nd"], np.nan)
+            .str.replace(",", ".", regex=False),
+            errors="coerce"
+        ) / 100
+    )
+
+    df["taux_chomage"] = df["nbr_chomeur_15_64"] / df["population"]
+
+    df["densite"] = df["population"] / df["superficie"]
+
+    #df = df.dropna()
 
     return df
 

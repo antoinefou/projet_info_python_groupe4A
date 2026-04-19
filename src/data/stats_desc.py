@@ -32,7 +32,7 @@ def univariate_numeric_analysis(
         Dictionnaire contenant les statistiques descriptives.
     """
 
-    x = df[[col]]
+    x = df[col]
 
     # Statistiques
     stats = {
@@ -60,7 +60,8 @@ def univariate_numeric_analysis(
 
     # Lignes statistiques importantes
     plt.axvline(stats["mean"], color="red", linestyle="dashed", label="mean")
-    plt.axvline(stats["p95"], color="orange", linestyle="dotted", label="p95")
+    plt.axvline(stats["q1"], color="orange", linestyle="dotted", label="q1")
+    plt.axvline(stats["q3"], color="orange", linestyle="dotted", label="q3")
 
     plt.legend()
     plt.show()
