@@ -34,6 +34,13 @@ insee = preprocess_insee(load_insee_dossier_complet(url_insee))
 
 # Fusionner DVF + INSEE
 df = merge_dvf_insee(dvf, insee)
+#test
+print("DVF code_commune exemple :", dvf["code_commune"].head(5).tolist())
+print("INSEE code_commune exemple :", insee["code_commune"].head(5).tolist())
+print("DVF codes uniques :", dvf["code_commune"].nunique())
+print("INSEE codes uniques :", insee["code_commune"].nunique())
+print(df[["taux_pauvrete"]].head(10))
+print(df["taux_pauvrete"].isnull().sum(), "/", len(df))
 
 # Ajouter logements sociaux
 df = load_and_merge_logements_sociaux(df)
@@ -72,6 +79,8 @@ features_num = [
 # One-hot encoding de type_local
 X = pd.get_dummies(df[features_num + ["type_local"]], columns=["type_local"], drop_first=True)
 X = X.apply(pd.to_numeric, errors="coerce")
+print(X.dtypes)
+print(X.isnull().sum())
 X = X.dropna()
 y = y.loc[X.index]
 

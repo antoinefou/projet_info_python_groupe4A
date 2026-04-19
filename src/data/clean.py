@@ -47,6 +47,8 @@ def filter_dvf_columns(df: pd.DataFrame) -> pd.DataFrame:
         "Surface reelle bati",
         "Nombre pieces principales", 
 
+        # temporalité
+        "Date mutation", 
         # information type vente
         "Nature mutation"
     ]
@@ -83,6 +85,7 @@ def filter_dvf_columns(df: pd.DataFrame) -> pd.DataFrame:
     ]
 
     df_filtered = df_filtered.dropna()
+    df_filtered["annee_mutation"] = pd.to_datetime(df_filtered["Date mutation"], dayfirst=True).dt.year
 
     df_filtered["Code postal"] = (
         df_filtered["Code postal"]
@@ -90,7 +93,6 @@ def filter_dvf_columns(df: pd.DataFrame) -> pd.DataFrame:
         .astype(str)
         )
 
-    df_filtered["annee_mutation"] = pd.to_datetime(df_filtered["Date mutation"]).dt.year
     
     # rename
     df_filtered = df_filtered.rename(columns={
@@ -171,7 +173,7 @@ def preprocess_insee(df: pd.DataFrame) -> pd.DataFrame:
 
     # Copie pour éviter de modifier l'original
     df = df.copy()
-
+    
     # 1. Renommage des colonnes
     df = df.rename(columns={
         "CODGEO": "code_commune",
@@ -183,10 +185,13 @@ def preprocess_insee(df: pd.DataFrame) -> pd.DataFrame:
         "SUPERF": "superficie",
         "SNEMM_23": "salaire_moyen"
     })
+    # Convertir les virgules en points pour les colonnes numériques
+    for col in ["taux_pauvrete", "mediane_niveau_vie"]:
+        df[col] = df[col].astype(str).str.replace(",", ".").apply(pd.to_numeric, errors="coerce")
 
     # 2. Conversion des types
     df["code_commune"] = df["code_commune"].astype("string")
-    df["mediane_niveau_vie"] = df["mediane_niveau_vie"].astype("string")
+    df["mediane_niveau_vie"] = pd.to_numeric(df["mediane_niveau_vie"], errors="coerce")
 
     df = df.dropna()
 
