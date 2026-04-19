@@ -96,7 +96,7 @@ def load_insee_dossier_complet(url: str) -> pd.DataFrame:
                 f, encoding="utf-8",
                 sep=";",                # INSEE utilise ; pas |
                 low_memory=False,
-                usecols=["CODGEO", "MED21", "TP6021", "P22_POP", "P22_CHOM1564", "P22_ACT1564"]
+                usecols=["CODGEO", "MED21", "TP6021", "P22_POP", "P22_CHOM1564", "P22_ACT1564", "SUPERF", "SNEMM_23"]
             )
 
     return df

@@ -175,7 +175,9 @@ def preprocess_insee(df: pd.DataFrame) -> pd.DataFrame:
         "TP6021": "taux_pauvrete",
         "P22_POP": "population",
         "P22_CHOM1564": "nbr_chomeur_15_64",
-        "P22_ACT1564": "nbr_personnes_active_15_64"
+        "P22_ACT1564": "nbr_personnes_active_15_64",
+        "SUPERF": "superficie",
+        "SNEMM_23": "salaire_moyen"
     })
 
     # 2. Conversion des types
