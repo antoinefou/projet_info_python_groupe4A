@@ -13,7 +13,6 @@ def prepare_features(df):
     y = df["prix_m2"]
 
     features_num = [
-        "code commune"
         "surface_reelle_bati",
         "nombre_pieces_principales",
         "mediane_niveau_vie",

@@ -78,8 +78,6 @@ if __name__ == "__main__":
     insee = preprocess_insee(load_insee_dossier_complet(url_insee))
     df = merge_dvf_insee(dvf, insee)
     df = load_and_merge_logements_sociaux(df)
-    df["taux_chomage"] = (df["nbr_chomeur_15_64"] / df["nbr_personnes_active_15_64"]) * 100
-    df["mediane_niveau_vie"] = pd.to_numeric(df["mediane_niveau_vie"], errors="coerce")
     df = df[(df["prix_m2"] > 500) & (df["prix_m2"] < 15000)]
 
     print(f"Dataset final : {df.shape}")

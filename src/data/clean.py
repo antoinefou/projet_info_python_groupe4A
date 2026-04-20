@@ -2,7 +2,7 @@
 
 import pandas as pd
 import numpy as np
-"""from collect import url_dvf, load__data_url_zip_txt"""
+
 
 
 def filter_dvf_columns(df: pd.DataFrame) -> pd.DataFrame:
@@ -48,16 +48,9 @@ def filter_dvf_columns(df: pd.DataFrame) -> pd.DataFrame:
         "Surface reelle bati",
         "Nombre pieces principales", 
 
-        # temporalité
-        "Date mutation", 
         # information type vente
         "Nature mutation"
     ]
-
-
-    
-
-    # duplicated?
 
     # garder uniquement les colonnes existantes (robustesse)
     cols_to_keep = [col for col in useful_cols if col in df.columns]
@@ -86,7 +79,6 @@ def filter_dvf_columns(df: pd.DataFrame) -> pd.DataFrame:
     ]
 
     df_filtered = df_filtered.dropna()
-    df_filtered["annee_mutation"] = pd.to_datetime(df_filtered["Date mutation"], dayfirst=True).dt.year
 
     df_filtered["Code postal"] = (
         df_filtered["Code postal"]
@@ -116,9 +108,6 @@ def filter_dvf_columns(df: pd.DataFrame) -> pd.DataFrame:
     return df_filtered
 
 
-"""dvf = filter_dvf_columns(load__data_url_zip_txt(url_dvf))
-print(dvf.dtypes)
-print(dvf)"""
 
 
 def compute_prix_m2(
@@ -210,76 +199,70 @@ def preprocess_insee(df: pd.DataFrame) -> pd.DataFrame:
     return df
 
 
-def merge_dvf_insee(dvf: pd.DataFrame, insee: pd.DataFrame, how: str = "left") -> pd.DataFrame:
+def remove_outliers(df: pd.DataFrame, filters: dict) -> pd.DataFrame:
     """
-    Effectue une jointure entre les données DVF et INSEE sur la variable 'code_commune'.
-
-    Paramètres
-    ----------
-    dvf : pd.DataFrame
-        DataFrame DVF (transactions immobilières)
-    insee : pd.DataFrame
-        DataFrame INSEE (variables socio-économiques)
-    how : str, optional (default="left")
-        Type de jointure ('left', 'inner', 'right', 'outer')
-
-    Retour
-    ------
-    pd.DataFrame
-        DataFrame fusionné
-    """
-
-    dvf = dvf.copy()
-    insee = insee.copy()
-
-    # Sécurisation des types (clé de jointure)
-    dvf["code_commune"] = dvf["code_commune"].astype("string")
-    insee["code_commune"] = insee["code_commune"].astype("string")
-
-    # Jointure
-    df_merged = pd.merge(
-        dvf,
-        insee,
-        on="code_commune",
-        how=how
-    )
-
-    return df_merged
-
-def load_and_merge_logements_sociaux(df: pd.DataFrame) -> pd.DataFrame:
-    """
-    Charge le taux de logements sociaux depuis data.gouv.fr
-    et le fusionne avec le DataFrame principal.
+    Supprime les valeurs aberrantes selon des bornes définies par colonne.
 
     Parameters
     ----------
     df : pd.DataFrame
-        DataFrame fusionné DVF + INSEE
+        DataFrame à filtrer
+    filters : dict
+        Dictionnaire {colonne: (min, max)} définissant les bornes acceptables
 
     Returns
     -------
     pd.DataFrame
-        DataFrame avec la colonne taux_logements_sociaux ajoutée
+        DataFrame filtré
+
+    Exemple
+    -------
+    >>> filters = {"prix_m2": (500, 15000), "surface_reelle_bati": (10, 500)}
+    >>> df_clean = remove_outliers(df, filters)
     """
-    url = "https://www.data.gouv.fr/api/1/datasets/r/b0d30277-3a14-4673-a988-2fa6c11e030c"
-    log_soc = pd.read_csv(url, sep=";", low_memory=False)
-    log_soc = log_soc[["Code Commune", "Taux de logements sociaux (%)"]].copy()
-    log_soc.columns = ["code_commune", "taux_logements_sociaux"]
+    df = df.copy()
+    before = len(df)
+
+    for col, (lower, upper) in filters.items():
+        df = df[(df[col] >= lower) & (df[col] <= upper)]
+
+    after = len(df)
+    print(f"Outliers supprimés : {before - after} lignes ({(before - after) / before * 100:.1f}%)")
+
+    return df
+
+
+def merge_all(dvf: pd.DataFrame, insee: pd.DataFrame, log_soc: pd.DataFrame) -> pd.DataFrame:
+    """
+    Fusionne les trois sources de données sur le code commune.
+
+    Parameters
+    ----------
+    dvf : pd.DataFrame
+        DataFrame DVF nettoyé
+    insee : pd.DataFrame
+        DataFrame INSEE nettoyé
+    log_soc : pd.DataFrame
+        DataFrame des logements sociaux
+
+    Returns
+    -------
+    pd.DataFrame
+        DataFrame fusionné DVF + INSEE + logements sociaux
+    """
+    dvf = dvf.copy()
+    insee = insee.copy()
+    log_soc = log_soc.copy()
+
+    # Harmoniser les types de la clé de jointure
+    dvf["code_commune"] = dvf["code_commune"].astype("string")
+    insee["code_commune"] = insee["code_commune"].astype("string")
     log_soc["code_commune"] = log_soc["code_commune"].astype("string")
 
-    df = df.merge(log_soc, on="code_commune", how="left")
+    # Fusion
+    df = pd.merge(dvf, insee, on="code_commune", how="left")
+    df = pd.merge(df, log_soc, on="code_commune", how="left")
     df["taux_logements_sociaux"] = df["taux_logements_sociaux"].fillna(0)
 
     return df
 
-# test
-"""
-from collect import url_dvf, url_insee, load__data_url_zip_txt, load_insee_dossier_complet
-
-dvf = filter_dvf_columns(load__data_url_zip_txt(url_dvf))
-insee = preprocess_insee(load_insee_dossier_complet(url_insee))
-
-dvf = compute_prix_m2(dvf)
-
-data_final = merge_dvf_insee(dvf, insee)
-print(data_final)"""
