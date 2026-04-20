@@ -46,7 +46,10 @@ def filter_dvf_columns(df: pd.DataFrame) -> pd.DataFrame:
         # caractéristiques bien
         "Type local",
         "Surface reelle bati",
+        "Nombre pieces principales", 
 
+        # temporalité
+        "Date mutation", 
         # information type vente
         "Nature mutation"
     ]
@@ -83,12 +86,14 @@ def filter_dvf_columns(df: pd.DataFrame) -> pd.DataFrame:
     ]
 
     df_filtered = df_filtered.dropna()
+    df_filtered["annee_mutation"] = pd.to_datetime(df_filtered["Date mutation"], dayfirst=True).dt.year
 
     df_filtered["Code postal"] = (
         df_filtered["Code postal"]
         .astype(int)
         .astype(str)
         )
+
     
     # rename
     df_filtered = df_filtered.rename(columns={
@@ -99,7 +104,8 @@ def filter_dvf_columns(df: pd.DataFrame) -> pd.DataFrame:
         "Code commune": "code_commune",
         "Type local": "type_local",
         "Surface reelle bati": "surface_reelle_bati",
-        "Nature mutation": "nature_mutation"
+        "Nature mutation": "nature_mutation",
+        "Nombre pieces principales": "nombre_pieces_principales",
     })
 
     df_filtered["code_departement"] = df_filtered["code_departement"].astype(str).str.zfill(2)
@@ -168,7 +174,7 @@ def preprocess_insee(df: pd.DataFrame) -> pd.DataFrame:
 
     # Copie pour éviter de modifier l'original
     df = df.copy()
-
+    
     # 1. Renommage des colonnes
     df = df.rename(columns={
         "CODGEO": "code_commune",
@@ -179,10 +185,13 @@ def preprocess_insee(df: pd.DataFrame) -> pd.DataFrame:
         "P22_ACT1564": "nbr_personnes_active_15_64",
         "SUPERF": "superficie"
     })
+    # Convertir les virgules en points pour les colonnes numériques
+    for col in ["taux_pauvrete", "mediane_niveau_vie"]:
+        df[col] = df[col].astype(str).str.replace(",", ".").apply(pd.to_numeric, errors="coerce")
 
     # 2. Conversion des types
     df["code_commune"] = df["code_commune"].astype("string")
-    df["mediane_niveau_vie"] = df["mediane_niveau_vie"].astype("string")
+    df["mediane_niveau_vie"] = pd.to_numeric(df["mediane_niveau_vie"], errors="coerce")
 
     df["taux_pauvrete"] = (
         pd.to_numeric(
@@ -237,6 +246,32 @@ def merge_dvf_insee(dvf: pd.DataFrame, insee: pd.DataFrame, how: str = "left") -
     )
 
     return df_merged
+
+def load_and_merge_logements_sociaux(df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Charge le taux de logements sociaux depuis data.gouv.fr
+    et le fusionne avec le DataFrame principal.
+
+    Parameters
+    ----------
+    df : pd.DataFrame
+        DataFrame fusionné DVF + INSEE
+
+    Returns
+    -------
+    pd.DataFrame
+        DataFrame avec la colonne taux_logements_sociaux ajoutée
+    """
+    url = "https://www.data.gouv.fr/api/1/datasets/r/b0d30277-3a14-4673-a988-2fa6c11e030c"
+    log_soc = pd.read_csv(url, sep=";", low_memory=False)
+    log_soc = log_soc[["Code Commune", "Taux de logements sociaux (%)"]].copy()
+    log_soc.columns = ["code_commune", "taux_logements_sociaux"]
+    log_soc["code_commune"] = log_soc["code_commune"].astype("string")
+
+    df = df.merge(log_soc, on="code_commune", how="left")
+    df["taux_logements_sociaux"] = df["taux_logements_sociaux"].fillna(0)
+
+    return df
 
 # test
 """
