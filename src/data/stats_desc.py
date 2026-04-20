@@ -43,6 +43,8 @@ def univariate_numeric_analysis(
         "median": x.median(),
         "q1": x.quantile(0.25),
         "q3": x.quantile(0.75),
+        "q05": x.quantile(0.05),
+        "q95": x.quantile(0.95)
     }
 
     # Affichage stats
