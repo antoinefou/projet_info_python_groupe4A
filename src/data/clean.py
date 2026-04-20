@@ -257,6 +257,5 @@ def merge_all(dvf: pd.DataFrame, insee: pd.DataFrame, log_soc: pd.DataFrame) -> 
     # Fusion
     df = pd.merge(dvf, insee, on="code_commune", how="left")
     df = pd.merge(df, log_soc, on="code_commune", how="left")
-    df["taux_logements_sociaux"] = df["taux_logements_sociaux"].fillna(0)
 
     return df

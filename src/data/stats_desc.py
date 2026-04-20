@@ -178,7 +178,7 @@ def carte_dep_communes_cartiflette(df, col, code_dep, code_commune_col="code_com
     communes = carti_download(
         values=["France"],
         crs=4326,
-        borders="COMMUNE",
+        borders="COMMUNE_ARRONDISSEMENT",
         vectorfile_format="geojson",
         simplification=simplification,
         filter_by="FRANCE_ENTIERE_DROM_RAPPROCHES",
@@ -189,10 +189,10 @@ def carte_dep_communes_cartiflette(df, col, code_dep, code_commune_col="code_com
     # Préparation codes
     df = df.copy()
     df[code_commune_col] = df[code_commune_col].astype(str)
-    communes["INSEE_COM"] = communes["INSEE_COM"].astype(str)
+    communes["INSEE_COG"] = communes["INSEE_COG"].astype(str)
 
     # Création code département depuis code commune
-    communes["DEP"] = communes["INSEE_COM"].str[:2]
+    communes["DEP"] = communes["INSEE_COG"].str[:2]
 
     # Filtrage département
     communes_dep = communes[communes["DEP"] == str(code_dep)]
@@ -203,11 +203,11 @@ def carte_dep_communes_cartiflette(df, col, code_dep, code_commune_col="code_com
     #  Jointure data ↔ géographie
     gdf = communes_dep.merge(
         df_agg,
-        left_on="INSEE_COM",
+        left_on="INSEE_COG",
         right_on=code_commune_col,
         how="left"
     )
-
+    gdf = gdf.drop_duplicates(subset="code_commune")
     # Plot choroplèthe
     fig, ax = plt.subplots(1, 1, figsize=(10, 10))
 
