@@ -186,12 +186,11 @@ def preprocess_insee(df: pd.DataFrame) -> pd.DataFrame:
         "SUPERF": "superficie"
     })
     # Convertir les virgules en points pour les colonnes numériques
-    for col in ["taux_pauvrete", "mediane_niveau_vie"]:
+    for col in ["mediane_niveau_vie"]:
         df[col] = df[col].astype(str).str.replace(",", ".").apply(pd.to_numeric, errors="coerce")
 
     # 2. Conversion des types
     df["code_commune"] = df["code_commune"].astype("string")
-    df["mediane_niveau_vie"] = pd.to_numeric(df["mediane_niveau_vie"], errors="coerce")
 
     df["taux_pauvrete"] = (
         pd.to_numeric(
@@ -202,11 +201,11 @@ def preprocess_insee(df: pd.DataFrame) -> pd.DataFrame:
         ) / 100
     )
 
-    df["taux_chomage"] = df["nbr_chomeur_15_64"] / df["population"]
+    df["taux_chomage"] = df["nbr_chomeur_15_64"] / df["nbr_personnes_active_15_64"]
 
     df["densite"] = df["population"] / df["superficie"]
 
-    #df = df.dropna()
+    # df = df.dropna()
 
     return df
 
