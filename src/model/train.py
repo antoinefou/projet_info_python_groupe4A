@@ -13,10 +13,10 @@ def prepare_features(df):
     y = df["prix_m2"]
 
     features_num = [
+        "code commune"
         "surface_reelle_bati",
         "nombre_pieces_principales",
         "mediane_niveau_vie",
-        "taux_pauvrete",
         "population",
         "taux_chomage",
         "taux_logements_sociaux"
@@ -24,7 +24,6 @@ def prepare_features(df):
 
     X = pd.get_dummies(df[features_num + ["type_local"]], columns=["type_local"], drop_first=True)
     X = X.apply(pd.to_numeric, errors="coerce")
-    X = X.dropna()
     y = y.loc[X.index]
 
     return X, y

@@ -80,9 +80,6 @@ if __name__ == "__main__":
     df = load_and_merge_logements_sociaux(df)
     df["taux_chomage"] = (df["nbr_chomeur_15_64"] / df["nbr_personnes_active_15_64"]) * 100
     df["mediane_niveau_vie"] = pd.to_numeric(df["mediane_niveau_vie"], errors="coerce")
-    for col in ["taux_pauvrete"]:
-        df[col] = df[col].astype(str).str.replace(",", ".").apply(pd.to_numeric, errors="coerce")
-    df = df.dropna(subset=["prix_m2", "mediane_niveau_vie", "taux_pauvrete", "population", "taux_chomage"])
     df = df[(df["prix_m2"] > 500) & (df["prix_m2"] < 15000)]
 
     print(f"Dataset final : {df.shape}")
