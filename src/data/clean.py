@@ -194,7 +194,6 @@ def preprocess_insee(df: pd.DataFrame) -> pd.DataFrame:
 
     df["densite"] = df["population"] / df["superficie"]
 
-    # df = df.dropna()
 
     return df
 
@@ -215,10 +214,6 @@ def remove_outliers(df: pd.DataFrame, filters: dict) -> pd.DataFrame:
     pd.DataFrame
         DataFrame filtré
 
-    Exemple
-    -------
-    >>> filters = {"prix_m2": (500, 15000), "surface_reelle_bati": (10, 500)}
-    >>> df_clean = remove_outliers(df, filters)
     """
     df = df.copy()
     before = len(df)
@@ -266,3 +261,9 @@ def merge_all(dvf: pd.DataFrame, insee: pd.DataFrame, log_soc: pd.DataFrame) -> 
 
     return df
 
+URL_LOGEMENTS_SOCIAUX = "https://www.data.gouv.fr/api/1/datasets/r/b0d30277-3a14-4673-a988-2fa6c11e030c"
+URL_DVF = "https://static.data.gouv.fr/resources/demandes-de-valeurs-foncieres/20260405-002321/valeursfoncieres-2025.txt.zip"
+URL_INSEE = "https://www.insee.fr/fr/statistiques/fichier/5359146/dossier_complet.zip"
+log_soc=load_logements_sociaux(URL_LOGEMENTS_SOCIAUX)
+dvf = load__data_url_zip_txt(URL_DVF)
+insee = 

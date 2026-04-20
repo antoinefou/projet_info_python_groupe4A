@@ -69,3 +69,7 @@ def load_logements_sociaux(url: str) -> pd.DataFrame:
     df.columns = ["code_commune", "taux_logements_sociaux"]
     df["code_commune"] = df["code_commune"].astype("string")
     return df
+
+URL_LOGEMENTS_SOCIAUX = "https://www.data.gouv.fr/api/1/datasets/r/b0d30277-3a14-4673-a988-2fa6c11e030c"
+log_soc=load_logements_sociaux(URL_LOGEMENTS_SOCIAUX)
+print(log_soc.head(50))
