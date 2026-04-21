@@ -25,17 +25,17 @@ Les données sont téléchargées automatiquement par le code — aucun fichier 
 ## Structure du projet
 
 ```
-├── notebooks/
-│   └── notebook1.ipynb          # Rapport principal (notebook)
+├── notebook1.ipynb             # Rapport principal (notebook)
+│            
 ├── src/
 │   ├── data/
 │   │   ├── collect.py           # Collecte des données (DVF, INSEE, logements sociaux)
 │   │   ├── clean.py             # Nettoyage, feature engineering, fusion
 │   │   ├── stats_desc.py        # Fonctions de statistiques descriptives
-│   │   └── stat_insee.ipynb     # Exploration des données INSEE
+│   │     
 │   └── model/
-│       ├── evaluate.py          # Entraînement et évaluation des modèles
-│       └── train.py             # (réservé)
+│       ├── evaluate.py          # Entraînement des modèles
+│       └── train.py             # Evaluation des modèles
 ├── requirements.txt
 └── README.md
 ```
@@ -56,12 +56,6 @@ Lancer le notebook principal :
 jupyter notebook notebooks/notebook1.ipynb
 ```
 
-Ou lancer la modélisation directement :
-
-```bash
-cd src
-python model/evaluate.py
-```
 
 ## Méthodologie
 
@@ -91,22 +85,3 @@ python model/evaluate.py
 ### Modèles
 1. **Régression linéaire** — modèle de référence (baseline)
 2. **Random Forest** — modèle principal
-
-### Évaluation
-- Split train/test : 80/20
-- Métriques : MAE, RMSE, R²
-
-## Résultats
-
-| Modèle | MAE (€/m²) | RMSE (€/m²) | R² |
-|---|---|---|---|
-| Régression linéaire | 1 659 | 2 562 | 0.29 |
-| Random Forest | 1 217 | 2 090 | 0.53 |
-
-Le Random Forest surpasse la régression linéaire, confirmant la nature non-linéaire de la relation entre les prix immobiliers et les variables explicatives.
-
-## Limites
-
-- Les données INSEE sont agrégées au niveau communal — la micro-localisation (quartier, rue) n'est pas captée
-- DVF ne contient pas l'étage, l'état du bien, ni la présence d'extérieur
-- Le taux de pauvreté présente des valeurs manquantes pour les petites communes (secret statistique INSEE)

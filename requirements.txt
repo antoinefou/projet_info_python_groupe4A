@@ -1,18 +1,18 @@
 # Data manipulation
-pandas>=2.0.0
-numpy>=1.24.0
+pandas
+numpy
  
 # Visualisation
-matplotlib>=3.7.0
-seaborn>=0.12.0
+matplotlib
+seaborn
  
 # Modélisation
-scikit-learn>=1.3.0
-scipy>=1.10.0
+scikit-learn
+scipy
  
 # Cartographie
-geopandas>=0.13.0
-cartiflette>=0.0.2
+geopandas
+cartiflette
  
 # Collecte de données
-requests>=2.31.0
+requests

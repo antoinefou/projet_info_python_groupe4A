@@ -6,6 +6,7 @@ import itertools
 from scipy.stats import pearsonr
 import geopandas as gpd
 from cartiflette import carti_download
+import math
 
 
 def univariate_numeric_analysis(
@@ -146,8 +147,6 @@ def analyse_bivariée_quant_quant(df, cols, method="pearson"):
 
     return corr, pvals
 
-# d'abord test ANOVA!!!
-
 
 def carte_dep_communes_cartiflette(df, col, code_dep, code_commune_col="code_commune", year=2022, simplification=50):
     """
@@ -228,7 +227,6 @@ def carte_dep_communes_cartiflette(df, col, code_dep, code_commune_col="code_com
 
     return gdf
 
-import math
 
 def carte_dep_communes_grid(
     df,
