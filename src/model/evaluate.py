@@ -1,24 +1,30 @@
-"""Évaluation et comparaison des modèles"""
+"""Fonctions d'évaluation et de visualisation des modèles"""
 
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
-import sys
-import os
-sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
-
 from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
-from data.collect import load__data_url_zip_txt, load_insee_dossier_complet, url_dvf, url_insee
-from data.clean import (
-    filter_dvf_columns, compute_prix_m2,
-    preprocess_insee, merge_dvf_insee,
-    load_and_merge_logements_sociaux
-)
-from model.train import prepare_features, split_data, train_linear_regression, train_random_forest
+from sklearn.model_selection import cross_val_score
 
 
 def evaluate_model(y_test, y_pred, model_name):
-    """Calcule et affiche les métriques d'un modèle."""
+    """
+    Calcule et affiche les métriques d'un modèle.
+
+    Parameters
+    ----------
+    y_test : array-like
+        Valeurs réelles
+    y_pred : array-like
+        Valeurs prédites
+    model_name : str
+        Nom du modèle
+
+    Returns
+    -------
+    dict
+        Dictionnaire des métriques
+    """
     mae = mean_absolute_error(y_test, y_pred)
     rmse = np.sqrt(mean_squared_error(y_test, y_pred))
     r2 = r2_score(y_test, y_pred)
@@ -46,65 +52,46 @@ def plot_feature_importance(model, columns):
     plt.show()
 
 
-def plot_predictions(y_test, y_pred_reg, y_pred_rf, r2_reg, r2_rf):
-    """Affiche prédictions vs réalité pour les deux modèles."""
-    fig, axes = plt.subplots(1, 2, figsize=(14, 6))
+def plot_predictions(y_test, predictions, model_names):
+    """
+    Affiche prédictions vs réalité pour plusieurs modèles.
 
-    axes[0].scatter(y_test, y_pred_reg, alpha=0.3, s=10)
-    axes[0].plot([0, 15000], [0, 15000], color="red", linestyle="--")
-    axes[0].set_title(f"Régression Linéaire (R² = {r2_reg:.3f})")
-    axes[0].set_xlabel("Prix réel (€/m²)")
-    axes[0].set_ylabel("Prix prédit (€/m²)")
+    Parameters
+    ----------
+    y_test : array-like
+        Valeurs réelles
+    predictions : list of array-like
+        Liste des prédictions de chaque modèle
+    model_names : list of str
+        Noms des modèles
+    """
+    n = len(predictions)
+    fig, axes = plt.subplots(1, n, figsize=(7 * n, 6))
 
-    axes[1].scatter(y_test, y_pred_rf, alpha=0.3, s=10)
-    axes[1].plot([0, 15000], [0, 15000], color="red", linestyle="--")
-    axes[1].set_title(f"Random Forest (R² = {r2_rf:.3f})")
-    axes[1].set_xlabel("Prix réel (€/m²)")
-    axes[1].set_ylabel("Prix prédit (€/m²)")
+    if n == 1:
+        axes = [axes]
+
+    for ax, y_pred, name in zip(axes, predictions, model_names):
+        r2 = r2_score(y_test, y_pred)
+        ax.scatter(y_test, y_pred, alpha=0.3, s=10)
+        ax.plot([0, 15000], [0, 15000], color="red", linestyle="--")
+        ax.set_title(f"{name} (R² = {r2:.3f})")
+        ax.set_xlabel("Prix réel (€/m²)")
+        ax.set_ylabel("Prix prédit (€/m²)")
 
     plt.tight_layout()
     plt.show()
 
 
-# =============================================================
-# EXÉCUTION
-# =============================================================
+def plot_residuals(y_test, y_pred, model_name="Modèle"):
+    """Affiche la distribution des résidus."""
+    residus = y_test - y_pred
 
-if __name__ == "__main__":
-
-    # 1. Charger les données
-    dvf = filter_dvf_columns(load__data_url_zip_txt(url_dvf))
-    dvf = compute_prix_m2(dvf)
-    insee = preprocess_insee(load_insee_dossier_complet(url_insee))
-    df = merge_dvf_insee(dvf, insee)
-    df = load_and_merge_logements_sociaux(df)
-    df = df[(df["prix_m2"] > 500) & (df["prix_m2"] < 15000)]
-
-    print(f"Dataset final : {df.shape}")
-
-    # 2. Préparer
-    X, y = prepare_features(df)
-    X_train, X_test, y_train, y_test = split_data(X, y)
-
-    print(f"Train : {X_train.shape[0]} | Test : {X_test.shape[0]}")
-
-    # 3. Entraîner
-    reg = train_linear_regression(X_train, y_train)
-    rf = train_random_forest(X_train, y_train)
-
-    # 4. Évaluer
-    y_pred_reg = reg.predict(X_test)
-    y_pred_rf = rf.predict(X_test)
-
-    res_reg = evaluate_model(y_test, y_pred_reg, "Régression Linéaire")
-    res_rf = evaluate_model(y_test, y_pred_rf, "Random Forest")
-
-    # 5. Comparaison
-    resultats = pd.DataFrame([res_reg, res_rf])
-    print("\n=== Comparaison ===")
-    print(resultats.to_string(index=False))
-
-    # 6. Graphiques
-    plot_feature_importance(rf, X.columns)
-    plot_predictions(y_test, y_pred_reg, y_pred_rf, res_reg["R²"], res_rf["R²"])
-
+    plt.figure(figsize=(10, 5))
+    plt.hist(residus, bins=50, edgecolor="black", alpha=0.7)
+    plt.axvline(0, color="red", linestyle="--")
+    plt.title(f"Distribution des résidus - {model_name}")
+    plt.xlabel("Erreur (€/m²)")
+    plt.ylabel("Fréquence")
+    plt.tight_layout()
+    plt.show()

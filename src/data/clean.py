@@ -226,6 +226,54 @@ def remove_outliers(df: pd.DataFrame, filters: dict) -> pd.DataFrame:
 
     return df
 
+def handle_missing_values(df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Gère les valeurs manquantes après fusion des trois sources.
+ 
+    Stratégie :
+    - Colonnes essentielles (prix_m2, surface, type_local) : suppression
+    - Colonnes INSEE : imputation par la médiane du département
+    - taux_pauvrete : supprimé (87% de NaN, secret statistique)
+    - taux_logements_sociaux : rempli à 0
+ 
+    Parameters
+    ----------
+    df : pd.DataFrame
+        DataFrame fusionné
+ 
+    Returns
+    -------
+    pd.DataFrame
+        DataFrame sans valeurs manquantes
+    """
+    df = df.copy()
+    before = len(df)
+ 
+    # Supprimer les lignes sans données DVF essentielles
+    df = df.dropna(subset=["prix_m2", "surface_reelle_bati", "type_local"])
+ 
+    # Supprimer taux_pauvrete (trop de NaN)
+    df = df.drop(columns=["taux_pauvrete"], errors="ignore")
+ 
+    # Remplir logements sociaux manquants par 0
+    df["taux_logements_sociaux"] = df["taux_logements_sociaux"].fillna(0)
+ 
+    # Imputer les variables INSEE par la médiane du département
+    cols_insee = ["mediane_niveau_vie", "population", "taux_chomage", "densite"]
+    for col in cols_insee:
+        if col in df.columns:
+            df[col] = df.groupby("code_departement")[col].transform(
+                lambda x: x.fillna(x.median())
+            )
+ 
+    # Supprimer les lignes restantes avec NaN
+    df = df.dropna(subset=cols_insee)
+ 
+    after = len(df)
+    print(f"Valeurs manquantes gérées : {before - after} lignes supprimées ({(before - after) / before * 100:.1f}%)")
+ 
+    return df
+
 
 def merge_all(dvf: pd.DataFrame, insee: pd.DataFrame, log_soc: pd.DataFrame) -> pd.DataFrame:
     """

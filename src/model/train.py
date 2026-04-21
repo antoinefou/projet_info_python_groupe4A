@@ -4,7 +4,7 @@ import pandas as pd
 import numpy as np
 from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LinearRegression
-from sklearn.ensemble import RandomForestRegressor
+from sklearn.ensemble import RandomForestRegressor, GradientBoostingRegressor
 
 
 def prepare_features(df):
@@ -18,11 +18,16 @@ def prepare_features(df):
         "mediane_niveau_vie",
         "population",
         "taux_chomage",
-        "taux_logements_sociaux"
+        "taux_logements_sociaux",
+        "densite"
     ]
-
+ 
     X = pd.get_dummies(df[features_num + ["type_local"]], columns=["type_local"], drop_first=True)
     X = X.apply(pd.to_numeric, errors="coerce")
+    
+    # Supprimer les NaN restants
+    mask = X.notna().all(axis=1)
+    X = X[mask]
     y = y.loc[X.index]
 
     return X, y
@@ -43,5 +48,15 @@ def train_linear_regression(X_train, y_train):
 def train_random_forest(X_train, y_train, n_estimators=100, random_state=42):
     """Entraîne un Random Forest."""
     model = RandomForestRegressor(n_estimators=n_estimators, random_state=random_state, n_jobs=-1)
+    model.fit(X_train, y_train)
+    return model
+
+
+def train_gradient_boosting(X_train, y_train, n_estimators=100, random_state=42):
+    """Entraîne un Gradient Boosting."""
+    model = GradientBoostingRegressor(
+        n_estimators=n_estimators,
+        random_state=random_state
+    )
     model.fit(X_train, y_train)
     return model
