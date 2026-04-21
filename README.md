@@ -43,7 +43,7 @@ Les données sont téléchargées automatiquement par le code — aucun fichier 
 ## Installation
 
 ```bash
-git clone https://github.com/votre-repo/projet_info_python_groupe4A.git
+git clone https://github.com/antoinefou/projet_info_python_groupe4A
 cd projet_info_python_groupe4A
 pip install -r requirements.txt
 ```
@@ -85,3 +85,12 @@ jupyter notebook notebooks/notebook1.ipynb
 ### Modèles
 1. **Régression linéaire** — modèle de référence (baseline)
 2. **Random Forest** — modèle principal
+3. **Gradient Boosting** — modèle séquentiel
+
+## Évaluation
+
+Split train/test : 80/20
+Métriques : MAE, RMSE, R²
+Analyse de l'importance des variables
+Analyse des résidus
+Analyse par département

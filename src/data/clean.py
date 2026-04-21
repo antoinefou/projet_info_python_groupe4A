@@ -192,7 +192,7 @@ def preprocess_insee(df: pd.DataFrame) -> pd.DataFrame:
 
     df["taux_chomage"] = df["nbr_chomeur_15_64"] / df["nbr_personnes_active_15_64"]
 
-    df["densite"] = df["population"] / df["superficie"]
+    df["densite"] = df["population"] / df["superficie"].replace(0, np.nan)
 
 
     return df
