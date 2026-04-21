@@ -1,19 +1,15 @@
-""" Statistiques descriptives univariées et bivariées"""
+"""Statistiques descriptives univariées et bivariées"""
+
 import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
 import itertools
 from scipy.stats import pearsonr
-import geopandas as gpd
 from cartiflette import carti_download
 import math
 
 
-def univariate_numeric_analysis(
-    df: pd.DataFrame,
-    col: str,
-    bins: int = 50
-):
+def univariate_numeric_analysis(df: pd.DataFrame, col: str, bins: int = 50):
     """
     Calcule et affiche les statistiques descriptives d'une variable numérique
     + histogramme.
@@ -45,7 +41,7 @@ def univariate_numeric_analysis(
         "q1": x.quantile(0.25),
         "q3": x.quantile(0.75),
         "q05": x.quantile(0.05),
-        "q95": x.quantile(0.95)
+        "q95": x.quantile(0.95),
     }
 
     # Affichage stats
@@ -125,7 +121,7 @@ def analyse_bivariée_quant_quant(df, cols, method="pearson"):
     ncols = int(np.ceil(np.sqrt(n)))
     nrows = int(np.ceil(n / ncols))
 
-    fig, axes = plt.subplots(nrows, ncols, figsize=(5*ncols, 4*nrows))
+    fig, axes = plt.subplots(nrows, ncols, figsize=(5 * ncols, 4 * nrows))
     axes = np.array(axes).reshape(-1)
 
     for k, (x, y) in enumerate(pairs):
@@ -148,7 +144,9 @@ def analyse_bivariée_quant_quant(df, cols, method="pearson"):
     return corr, pvals
 
 
-def carte_dep_communes_cartiflette(df, col, code_dep, code_commune_col="code_commune", year=2022, simplification=50):
+def carte_dep_communes_cartiflette(
+    df, col, code_dep, code_commune_col="code_commune", year=2022, simplification=50
+):
     """
     Carte choroplèthe des communes d'un département
     directement via cartiflette + données utilisateur.
@@ -182,7 +180,7 @@ def carte_dep_communes_cartiflette(df, col, code_dep, code_commune_col="code_com
         simplification=simplification,
         filter_by="FRANCE_ENTIERE_DROM_RAPPROCHES",
         source="EXPRESS-COG-CARTO-TERRITOIRE",
-        year=year
+        year=year,
     )
 
     # Préparation codes
@@ -201,10 +199,7 @@ def carte_dep_communes_cartiflette(df, col, code_dep, code_commune_col="code_com
 
     #  Jointure data ↔ géographie
     gdf = communes_dep.merge(
-        df_agg,
-        left_on="INSEE_COG",
-        right_on=code_commune_col,
-        how="left"
+        df_agg, left_on="INSEE_COG", right_on=code_commune_col, how="left"
     )
     gdf = gdf.drop_duplicates(subset="code_commune")
     # Plot choroplèthe
@@ -217,7 +212,7 @@ def carte_dep_communes_cartiflette(df, col, code_dep, code_commune_col="code_com
         legend=True,
         missing_kwds={"color": "lightgrey"},
         edgecolor="white",
-        linewidth=0.2
+        linewidth=0.2,
     )
 
     ax.set_title(f"Carte département {code_dep} - {col}", fontsize=14)
@@ -229,12 +224,7 @@ def carte_dep_communes_cartiflette(df, col, code_dep, code_commune_col="code_com
 
 
 def carte_dep_communes_grid(
-    df,
-    cols,
-    code_dep,
-    code_commune_col="code_commune",
-    year=2022,
-    simplification=50
+    df, cols, code_dep, code_commune_col="code_commune", year=2022, simplification=50
 ):
     communes = carti_download(
         values=["France"],
@@ -244,7 +234,7 @@ def carte_dep_communes_grid(
         simplification=simplification,
         filter_by="FRANCE_ENTIERE_DROM_RAPPROCHES",
         source="EXPRESS-COG-CARTO-TERRITOIRE",
-        year=year
+        year=year,
     )
 
     df = df.copy()
@@ -267,10 +257,7 @@ def carte_dep_communes_grid(
         df_agg = df.groupby(code_commune_col)[col].mean().reset_index()
 
         gdf = communes_dep.merge(
-            df_agg,
-            left_on="INSEE_COG",
-            right_on=code_commune_col,
-            how="left"
+            df_agg, left_on="INSEE_COG", right_on=code_commune_col, how="left"
         )
         gdf = gdf.drop_duplicates(subset="code_commune")
         gdf.plot(
@@ -280,7 +267,7 @@ def carte_dep_communes_grid(
             legend=True,
             missing_kwds={"color": "lightgrey"},
             edgecolor="white",
-            linewidth=0.2
+            linewidth=0.2,
         )
 
         axes[i].set_title(col)
@@ -302,7 +289,8 @@ departement_borders = carti_download(
     simplification=50,
     filter_by="FRANCE_ENTIERE_DROM_RAPPROCHES",
     source="EXPRESS-COG-CARTO-TERRITOIRE",
-    year=2022)
+    year=2022,
+)
 
 
 def carte_france_departements(
@@ -311,7 +299,7 @@ def carte_france_departements(
     departement_borders=departement_borders,
     code_commune_col="code_commune",
     agg_func="mean",
-    cmap="viridis"
+    cmap="viridis",
 ):
     """
     Carte choroplèthe d'une variable par département (France)
@@ -342,18 +330,10 @@ def carte_france_departements(
     )
 
     #  Agrégation département
-    df_dep = (
-        df.groupby("code_departement")[col]
-        .agg(agg_func)
-        .reset_index()
-    )
+    df_dep = df.groupby("code_departement")[col].agg(agg_func).reset_index()
 
     #  Jointure
-    gdf = departement_borders.merge(
-        df_dep,
-        on="code_departement",
-        how="left"
-    )
+    gdf = departement_borders.merge(df_dep, on="code_departement", how="left")
 
     #  Plot
     fig, ax = plt.subplots(figsize=(9, 8))
@@ -365,7 +345,7 @@ def carte_france_departements(
         legend=True,
         missing_kwds={"color": "lightgrey"},
         edgecolor="white",
-        linewidth=0.2
+        linewidth=0.2,
     )
 
     ax.set_title(f"{col} par département", fontsize=14, fontweight="bold")

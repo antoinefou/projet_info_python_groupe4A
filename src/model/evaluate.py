@@ -4,7 +4,6 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
-from sklearn.model_selection import cross_val_score
 
 
 def evaluate_model(y_test, y_pred, model_name):
@@ -39,10 +38,9 @@ def evaluate_model(y_test, y_pred, model_name):
 
 def plot_feature_importance(model, columns):
     """Affiche l'importance des variables du Random Forest."""
-    importances = pd.DataFrame({
-        "variable": columns,
-        "importance": model.feature_importances_
-    }).sort_values("importance", ascending=True)
+    importances = pd.DataFrame(
+        {"variable": columns, "importance": model.feature_importances_}
+    ).sort_values("importance", ascending=True)
 
     plt.figure(figsize=(10, 6))
     plt.barh(importances["variable"], importances["importance"], color="steelblue")

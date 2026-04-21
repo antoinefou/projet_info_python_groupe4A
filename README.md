@@ -50,11 +50,9 @@ pip install -r requirements.txt
 
 ## Utilisation
 
-Lancer le notebook principal :
+Lancer le notebook principal : notebook1.ipynb
 
-```bash
-jupyter notebook notebooks/notebook1.ipynb
-```
+
 
 
 ## Méthodologie
