@@ -1,6 +1,6 @@
 # Prédiction du prix immobilier en France — DVF × INSEE
 
-**Projet Python pour la Data Science — ENSAI 2024-2025 — Groupe 4A**
+**Projet Python pour la Data Science — ENSAI 2025-2026 — Groupe 4A**
 
 Yassine MELLOUL · Amira BARHOUMI · Antoine FOUCART
 
