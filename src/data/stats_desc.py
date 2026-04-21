@@ -294,3 +294,84 @@ def carte_dep_communes_grid(
 
     plt.tight_layout(rect=[0, 0, 1, 0.96])
     plt.show()
+
+
+departement_borders = carti_download(
+    values=["France"],
+    crs=4326,
+    borders="DEPARTEMENT",
+    vectorfile_format="geojson",
+    simplification=50,
+    filter_by="FRANCE_ENTIERE_DROM_RAPPROCHES",
+    source="EXPRESS-COG-CARTO-TERRITOIRE",
+    year=2022)
+
+
+def carte_france_departements(
+    df,
+    col,
+    departement_borders=departement_borders,
+    code_commune_col="code_commune",
+    agg_func="mean",
+    cmap="viridis"
+):
+    """
+    Carte choroplèthe d'une variable par département (France)
+
+    Parameters
+    ----------
+    df : pd.DataFrame
+    col : str
+    departement_borders : GeoDataFrame
+    code_commune_col : str
+    agg_func : str
+    cmap : str
+
+    Returns
+    -------
+    GeoDataFrame
+    """
+
+    df = df.copy()
+
+    #  Codes
+    df[code_commune_col] = df[code_commune_col].astype(str)
+    df["code_departement"] = df[code_commune_col].str[:2]
+
+    departement_borders = departement_borders.copy()
+    departement_borders["code_departement"] = (
+        departement_borders["INSEE_DEP"].astype(str).str.zfill(2)
+    )
+
+    #  Agrégation département
+    df_dep = (
+        df.groupby("code_departement")[col]
+        .agg(agg_func)
+        .reset_index()
+    )
+
+    #  Jointure
+    gdf = departement_borders.merge(
+        df_dep,
+        on="code_departement",
+        how="left"
+    )
+
+    #  Plot
+    fig, ax = plt.subplots(figsize=(9, 8))
+
+    gdf.plot(
+        column=col,
+        ax=ax,
+        cmap="viridis",
+        legend=True,
+        missing_kwds={"color": "lightgrey"},
+        edgecolor="white",
+        linewidth=0.2
+    )
+
+    ax.set_title(f"{col} par département", fontsize=14, fontweight="bold")
+    ax.axis("off")
+
+    plt.tight_layout()
+    plt.show()
