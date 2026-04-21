@@ -16,7 +16,6 @@ def prepare_features(df):
         "surface_reelle_bati",
         "nombre_pieces_principales",
         "mediane_niveau_vie",
-        "population",
         "taux_chomage",
         "taux_logements_sociaux",
         "densite"
@@ -36,7 +35,7 @@ def prepare_features(df):
 def split_data(X, y, test_size=0.2, random_state=42):
     """Split train/test."""
     return train_test_split(X, y, test_size=test_size, random_state=random_state)
-
+    
 
 def train_linear_regression(X_train, y_train):
     """Entraîne une régression linéaire."""

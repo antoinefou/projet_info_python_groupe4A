@@ -198,28 +198,34 @@ def preprocess_insee(df: pd.DataFrame) -> pd.DataFrame:
     return df
 
 
-def remove_outliers(df: pd.DataFrame, filters: dict) -> pd.DataFrame:
+def remove_outliers(df: pd.DataFrame, columns: list, lower_q=0.05, upper_q=0.95) -> pd.DataFrame:
     """
-    Supprime les valeurs aberrantes selon des bornes définies par colonne.
+    Supprime les valeurs aberrantes en utilisant les quantiles.
 
     Parameters
     ----------
     df : pd.DataFrame
         DataFrame à filtrer
-    filters : dict
-        Dictionnaire {colonne: (min, max)} définissant les bornes acceptables
+    columns : list
+        Liste des colonnes à filtrer
+    lower_q : float
+        Quantile inférieur (default: 0.05 = 5%)
+    upper_q : float
+        Quantile supérieur (default: 0.95 = 95%)
 
     Returns
     -------
     pd.DataFrame
         DataFrame filtré
-
     """
     df = df.copy()
     before = len(df)
 
-    for col, (lower, upper) in filters.items():
+    for col in columns:
+        lower = df[col].quantile(lower_q)
+        upper = df[col].quantile(upper_q)
         df = df[(df[col] >= lower) & (df[col] <= upper)]
+        print(f"  {col} : bornes [{lower:.2f}, {upper:.2f}]")
 
     after = len(df)
     print(f"Outliers supprimés : {before - after} lignes ({(before - after) / before * 100:.1f}%)")
