@@ -227,3 +227,70 @@ def carte_dep_communes_cartiflette(df, col, code_dep, code_commune_col="code_com
     plt.show()
 
     return gdf
+
+import math
+
+def carte_dep_communes_grid(
+    df,
+    cols,
+    code_dep,
+    code_commune_col="code_commune",
+    year=2022,
+    simplification=50
+):
+    communes = carti_download(
+        values=["France"],
+        crs=4326,
+        borders="COMMUNE_ARRONDISSEMENT",
+        vectorfile_format="geojson",
+        simplification=simplification,
+        filter_by="FRANCE_ENTIERE_DROM_RAPPROCHES",
+        source="EXPRESS-COG-CARTO-TERRITOIRE",
+        year=year
+    )
+
+    df = df.copy()
+    df[code_commune_col] = df[code_commune_col].astype(str)
+    communes["INSEE_COG"] = communes["INSEE_COG"].astype(str)
+
+    communes["DEP"] = communes["INSEE_COG"].str[:2]
+    communes_dep = communes[communes["DEP"] == str(code_dep)]
+
+    # Grille
+    n = len(cols)
+    ncols = 2
+    nrows = math.ceil(n / ncols)
+
+    fig, axes = plt.subplots(nrows, ncols, figsize=(12, 6 * nrows))
+    fig.suptitle(f"Cartes du département {code_dep}", fontsize=16)
+    axes = axes.flatten()
+
+    for i, col in enumerate(cols):
+        df_agg = df.groupby(code_commune_col)[col].mean().reset_index()
+
+        gdf = communes_dep.merge(
+            df_agg,
+            left_on="INSEE_COG",
+            right_on=code_commune_col,
+            how="left"
+        )
+        gdf = gdf.drop_duplicates(subset="code_commune")
+        gdf.plot(
+            column=col,
+            ax=axes[i],
+            cmap="viridis",
+            legend=True,
+            missing_kwds={"color": "lightgrey"},
+            edgecolor="white",
+            linewidth=0.2
+        )
+
+        axes[i].set_title(col)
+        axes[i].axis("off")
+
+    # Supprimer axes vides
+    for j in range(i + 1, len(axes)):
+        axes[j].axis("off")
+
+    plt.tight_layout(rect=[0, 0, 1, 0.96])
+    plt.show()
